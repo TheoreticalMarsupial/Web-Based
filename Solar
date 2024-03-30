@@ -1,0 +1,47 @@
+In this document contains the code for calculating the solar calculations from the tools reference pages. 
+
+Raster Solar Radiation Tool Code
+This tool is from ArcGIS Pro 3.2 and has GPU processing, and Multiprocessing incorporated into it. The multiprocessing part is located in the environment options where similar to Insert Multiprocessing for GPU (2.) To use GPU processing however your machine must have a NVIDIA GPU with Cuda Compute Capabilities Version 3.7 at a Minimum with version 6.7 or later being recommended. The Multiprocessing piece: arcpy.env.parallelProcessingFactor = "4” is found in the environment section, in this it is set to 4 as I was using my CPU to run this as my CUDA compute Version was not acceptable therefore I was left to use my 4 core CPU processor. The completion time was roughly 1 hour and 20 minutes to generate the solar model for Arlington County.
+This is set up to run over the entirety of 2023, using a DSM raster. The necessary changes on a different machine would be the file paths for workspaces, saves, rasters, etc. as well as the parallelProcessingFactor need to be changed for the specifics of a machine.
+
+Code
+# Name: RasterSolarRadiation_standalone.py
+# Description: Calculate solar insolation for the year 2023 at one month 
+#  time intervals. Return all output radiation rasters.
+# Requirements: Spatial Analyst Extension
+
+# Import system modules
+import arcpy
+from arcpy.sa import *
+
+# Set environment settings
+arcpy.env.workspace = r"C:\Users\jgraulic\Documents\VCC_Project\MyProject1\MyProject1.gdb\Arlington_Python_test1"
+arcpy.env.parallelProcessingFactor = "4"
+
+# Check out the ArcGIS Spatial Analyst extension license
+arcpy.CheckOutExtension("Spatial")
+
+# Run RasterSolarRadiation
+out_solar_radiation_raster = arcpy.sa.RasterSolarRadiation(
+	in_surface_raster="Arlington_raster",
+	start_date_time="1/1/2023",
+	end_date_time="12/31/2023",
+	in_analysis_mask="ArlingtonParkingLots",
+	in_slope_raster="Arlington_Slope",
+	in_aspect_raster="Arlington_Aspect",
+	out_direct_radiation_raster="",
+	out_diffuse_radiation_raster="",
+	out_duration_raster="",
+	time_zone="US_Eastern_Standard_Time",
+	adjust_DST="ADJUSTED_FOR_DST",
+	neighborhood_distance="",
+	use_adaptive_neighborhood="",
+	diffuse_model_type="UNIFORM_SKY",
+	diffuse_proportion=0.3,
+	transmittivity=0.5,
+	analysis_target_device="GPU_THEN_CPU"
+)
+
+# Save the output 
+out_solar_radiation_raster.save(r"C:\Users\jgraulic\Documents\VCC_Project\MyProject1\Arlington_Raster_python\Arlington_raster_Python.crf")
+
